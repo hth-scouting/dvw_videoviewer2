@@ -13,31 +13,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
     
-    <title>HTH Pro Scouting v0.5.22 (Debug Mode)</title>
+    <title>HTH Pro Scouting v0.5.24</title>
     
     <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
 
     <style>
-        :root { 
-            --primary: #007bff; --home-accent: #f06292; --away-accent: #64b5f6; --score-bg: rgba(255, 255, 255, 0.95);
-        }
+        :root { --primary: #007bff; --home-accent: #f06292; --away-accent: #64b5f6; --score-bg: rgba(255, 255, 255, 0.95); }
         body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; display: flex; background: #f0f2f5; }
-
-        /* レイアウト */
         #video-side { flex: 3.5; background: #000; position: relative; min-width: 0; }
         #control-side { flex: 1; min-width: 320px; padding: 15px; overflow-y: auto; background: white; border-left: 1px solid #ddd; box-sizing: border-box; }
-
         @media (max-width: 768px) {
             body { flex-direction: column; }
             #video-side { width: 100%; height: auto; aspect-ratio: 16/9; flex: none; }
             #control-side { width: 100%; flex: 1; border-left: none; border-top: 1px solid #ddd; }
-            #score-overlay { top: 8px !important; left: 8px !important; width: 110px !important; }
         }
-
         #player-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
         #player { width: 100%; height: 100%; }
-
-        /* スコア表示（オーバーレイ） */
         #score-overlay {
             position: absolute; top: 30px; left: 30px; display: none; flex-direction: column;
             background: var(--score-bg); border-radius: 9px; overflow: hidden;
@@ -51,26 +42,16 @@
         .ov-team-box { flex: 1; display: flex; align-items: center; padding-left: 12px; font-weight: 700; font-size: 1.1rem; }
         .ov-sets-box { width: 40px; display: flex; align-items: center; justify-content: center; background: #fdfdfd; color: #888; border-left: 1px solid #eee; }
         .ov-points-box { width: 60px; display: flex; align-items: center; justify-content: center; color: #000; font-size: 1.8rem; font-weight: 800; border-left: 1px solid #eee; }
-
-        /* フィルターUI */
         .mode-tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
         .mode-tab { flex: 1; min-width: 70px; padding: 8px 4px; border: none; background: #e4e6eb; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 0.7rem; color: #555; }
         .mode-tab.active { background: var(--primary); color: white; }
-        
         .filter-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
         .filter-label { font-size: 0.65rem; color: #888; font-weight: bold; display: block; margin-bottom: 3px; text-transform: uppercase; }
         select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.85rem; margin-bottom: 8px; }
-
-        /* リスト表示 */
         .set-divider { background: #555; color: white; padding: 5px; font-size: 0.7rem; font-weight: 900; border-radius: 4px; margin: 12px 0 6px 0; text-align: center; }
         .instance-btn { padding: 10px; cursor: pointer; border: 1px solid #eee; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; border-left: 8px solid #ccc; background: #fff; }
         .instance-btn.active { background: #f0f7ff !important; outline: 2px solid var(--primary); }
         .score-box { font-family: "Arial Black"; font-size: 0.9rem; min-width: 50px; text-align: center; margin-right: 10px; background: #f0f0f0; border-radius: 4px; }
-        
-        /* スタッツ表 */
-        .stats-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; white-space: nowrap; }
-        .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 4px; text-align: center; }
-        .p-cell { text-align: left !important; font-weight: bold; background: #fff; position: sticky; left: 0; border-right: 2px solid #ddd !important; z-index: 2; }
         .click-num { color: var(--primary); font-weight: 800; cursor: pointer; text-decoration: underline; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
@@ -95,14 +76,14 @@
     </div>
 
     <div class="filter-card">
-        <span class="filter-label">1. Dropbox Sync Status</span>
+        <span class="filter-label">1. Dropbox Category</span>
         <div id="categoryTabs" class="mode-tabs" style="margin-bottom: 8px;">
-            <p style="font-size:0.7rem; color:#888;">Checking Dropbox...</p>
+            <p style="font-size:0.7rem; color:#888;">Connecting...</p>
         </div>
         
         <span class="filter-label">2. Match</span>
         <select id="matchSelect" onchange="onMatchChange(this.value)">
-            <option value="">(Waiting for Dropbox...)</option>
+            <option value="">Choose category first</option>
         </select>
 
         <div id="rally-filters">
@@ -111,27 +92,13 @@
         </div>
 
         <div id="player-filters" style="display:none;">
-            <span class="filter-label">3. Team & Player</span>
             <div style="display:flex; gap:4px; margin-bottom:5px;">
-                <select id="teamFilterPlayer" onchange="onTeamChangePlayer()"><option value="">Team</option></select>
-                <select id="playerFilter" onchange="render()"><option value="">Player</option></select>
+                <div style="flex:1"><span class="filter-label">3. Team</span><select id="teamFilterPlayer" onchange="onTeamChangePlayer()"></select></div>
+                <div style="flex:1"><span class="filter-label">4. Player</span><select id="playerFilter" onchange="render()"></select></div>
             </div>
             <div style="display:flex; gap:4px;">
-                <div style="flex:1">
-                    <span class="filter-label">4. Skill</span>
-                    <select id="skillFilter" onchange="render()">
-                        <option value="">All</option>
-                        <option value="S">Serve (S)</option><option value="R">Reception (R)</option><option value="E">Set (E)</option>
-                        <option value="A">Attack (A)</option><option value="B">Block (B)</option><option value="D">Dig (D)</option>
-                    </select>
-                </div>
-                <div style="flex:1">
-                    <span class="filter-label">5. Effect</span>
-                    <select id="effectFilter" onchange="render()">
-                        <option value="">All</option>
-                        <option value="#">Win (#)</option><option value="=">Error (=)</option><option value="+">Pos (+)</option><option value="-">Poor (-)</option><option value="!">Neutral (!)</option>
-                    </select>
-                </div>
+                <div style="flex:1"><span class="filter-label">5. Skill</span><select id="skillFilter" onchange="render()"><option value="">All</option><option value="S">Serve</option><option value="R">Reception</option><option value="E">Set</option><option value="A">Attack</option><option value="B">Block</option><option value="D">Dig</option></select></div>
+                <div style="flex:1"><span class="filter-label">6. Effect</span><select id="effectFilter" onchange="render()"><option value="">All</option><option value="#">Win</option><option value="=">Error</option><option value="+">Pos</option><option value="-">Poor</option><option value="!">Neutral</option></select></div>
             </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px; font-size:0.7rem; color:#666; margin-top:5px;">
@@ -142,129 +109,95 @@
 </div>
 
 <script>
-    // --- 【設定】Dropbox情報 ---
-    const DBX_ACCESS_TOKEN = 'sl.u.AGSsyzR2lcDU93-GotIWD7N00tHXpFckIgOfO4QrE17_52JoND5RYEcoulkwarB5u5Qtg_dKuZxz9e8JWoAvby0DqZ3Gi6StPMEbnwTul-J31psuE-hVttd3oFPiAeAZ94_Nq3C7YKyaSdLP0UK9b6PP4QQXJnlkiOYchvzYWlfSLFdrL8lhZzz9AkjY9_jHZtUSPqrit4zrH2PspXVnc-vQdGg0i1TEPe-J_25wgU7PqAvWP1NZJ4Qd6ttTMz5B54kmt_ffLrmJ8P73eqRwq12ygfubFaZlHBMDFQ0vCOsR0P3yvzw9hsqdkgxKxlntBpUptICAlkzCnaZ6rsVTKKVAVTDaHoPb15H0B3Qsj1UuwfYHBa-77a6g-Bu3ZiooTV751I5jAy7Yzm_oiwTY_ZSf9kFDOmTV9NMUmw0NcHT4bKwzG4JELRZeO1skrCRc8bY4k9IdtlbXmM7n2PoxNQSqdV7DkggDgN7fLgaU_2rmA88RhvV2MeXtU45jL6opCZUFVgcTA7DSxAWOEZFgq1j-1l_g22-8Q-S4Y-q1SH3W7msaBlqfdOnvGH-gS5aGhVZ_P_-xoFHAltQjL8yYhj8WzCMBj3xxHaLhhjykhX6JrPk1KoslujCkK58COY-SY8W0HAAbzvuTyTdfWxLd3VXht-kNA31NNkgHYBYiUOeAeOMnG876FPz04BHbCumy4cJKtgK_bYZB6by91ffR5iZC65-M1wlCax2EilrR1Thxx0HzbxYn4Cu3vD5ae0J4IDCc1GCoKOKidF7JYM04bXdSIygyvmtwRaXMIDkxBdECTk4gPfxT52gQT-Wg26WnPPeBmaYN1RQs_V-FnRVxrcSAowW-_ONkDXYvvTub9JwwkV7GLc8aoL1oPTE39Q7t5NdWJeXsHiMo7mskgmTiVlEjd85JPdlQK98qSRvAtYBKEqHxD2820wOLGDfKHKVJ9hO_dsJ8iSleDBEFp92YCeFKBpQPhijvOdfQCRdfZeuYpte0g49VRezudGF6FxAbbh1vRcOEZTI3Jly9z-LO9v3GB138fYwYoUBH392XGH4zhiaEU4G69Sq9vh2VQOkw_Q96YDOIO6mug28WM7STSdlafTYCBuMnqsLET8jY6dnmvT8dpeRhyri12Wts-b23BviVE1SJYED8Rt-BfrTfhpq9Gv0br3wh29eAQ_UaaSCJaRdZE5fIgNsc03IimzoGd_agxRkEdjfJYKnSxuAoTyY3du9q_xfVqbQx8AMGipQx-esGddHc-fZ_mZerhDUuVubqX2BQ7W1fZIIYNwpjYnHo'; // コンソールで生成したトークン
-    const DBX_FOLDER_PATH = ''; // 例: '/HTH_Data'。専用フォルダ直下なら空 '' でOK
+    const DBX_ACCESS_TOKEN = 'sl.u.AGSsyzR2lcDU93-GotIWD7N00tHXpFckIgOfO4QrE17_52JoND5RYEcoulkwarB5u5Qtg_dKuZxz9e8JWoAvby0DqZ3Gi6StPMEbnwTul-J31psuE-hVttd3oFPiAeAZ94_Nq3C7YKyaSdLP0UK9b6PP4QQXJnlkiOYchvzYWlfSLFdrL8lhZzz9AkjY9_jHZtUSPqrit4zrH2PspXVnc-vQdGg0i1TEPe-J_25wgU7PqAvWP1NZJ4Qd6ttTMz5B54kmt_ffLrmJ8P73eqRwq12ygfubFaZlHBMDFQ0vCOsR0P3yvzw9hsqdkgxKxlntBpUptICAlkzCnaZ6rsVTKKVAVTDaHoPb15H0B3Qsj1UuwfYHBa-77a6g-Bu3ZiooTV751I5jAy7Yzm_oiwTY_ZSf9kFDOmTV9NMUmw0NcHT4bKwzG4JELRZeO1skrCRc8bY4k9IdtlbXmM7n2PoxNQSqdV7DkggDgN7fLgaU_2rmA88RhvV2MeXtU45jL6opCZUFVgcTA7DSxAWOEZFgq1j-1l_g22-8Q-S4Y-q1SH3W7msaBlqfdOnvGH-gS5aGhVZ_P_-xoFHAltQjL8yYhj8WzCMBj3xxHaLhhjykhX6JrPk1KoslujCkK58COY-SY8W0HAAbzvuTyTdfWxLd3VXht-kNA31NNkgHYBYiUOeAeOMnG876FPz04BHbCumy4cJKtgK_bYZB6by91ffR5iZC65-M1wlCax2EilrR1Thxx0HzbxYn4Cu3vD5ae0J4IDCc1GCoKOKidF7JYM04bXdSIygyvmtwRaXMIDkxBdECTk4gPfxT52gQT-Wg26WnPPeBmaYN1RQs_V-FnRVxrcSAowW-_ONkDXYvvTub9JwwkV7GLc8aoL1oPTE39Q7t5NdWJeXsHiMo7mskgmTiVlEjd85JPdlQK98qSRvAtYBKEqHxD2820wOLGDfKHKVJ9hO_dsJ8iSleDBEFp92YCeFKBpQPhijvOdfQCRdfZeuYpte0g49VRezudGF6FxAbbh1vRcOEZTI3Jly9z-LO9v3GB138fYwYoUBH392XGH4zhiaEU4G69Sq9vh2VQOkw_Q96YDOIO6mug28WM7STSdlafTYCBuMnqsLET8jY6dnmvT8dpeRhyri12Wts-b23BviVE1SJYED8Rt-BfrTfhpq9Gv0br3wh29eAQ_UaaSCJaRdZE5fIgNsc03IimzoGd_agxRkEdjfJYKnSxuAoTyY3du9q_xfVqbQx8AMGipQx-esGddHc-fZ_mZerhDUuVubqX2BQ7W1fZIIYNwpjYnHo'.trim(); // トークンを貼り付け
+    const DBX_FOLDER_PATH = ''; // パス設定
 
-    let dbx, player, allPlays = [], rallies = [], matchMap = {}, playerMaster = {}, allMatchData = [], currentMode = 'rally', currentIndex = -1, checkInterval;
+    let dbx, player, allPlays = [], rallies = [], matchMap = {}, playerMaster = {}, allMatchData = [], currentMode = 'rally', currentIndex = -1, checkInterval, isPlayerReady = false;
 
+    // YouTube IFrame API
     function onYouTubeIframeAPIReady() {
-        console.log("YT Player: API準備完了");
         player = new YT.Player('player', {
             height: '100%', width: '100%', 
             playerVars: { 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'enablejsapi': 1 },
-            events: { 'onReady': initDropbox, 'onStateChange': onPlayerStateChange }
+            events: { 
+                'onReady': () => { console.log("YT Ready"); isPlayerReady = true; initDropbox(); }, 
+                'onStateChange': onPlayerStateChange 
+            }
         });
     }
     const tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
 
     async function initDropbox() {
-        console.log("Dropbox: 同期開始...");
         dbx = new Dropbox.Dropbox({ accessToken: DBX_ACCESS_TOKEN });
-        
         try {
-            console.log("Dropbox: フォルダ読み込みパス -> ", DBX_FOLDER_PATH || "ルート(アプリ直下)");
             const response = await dbx.filesListFolder({ path: DBX_FOLDER_PATH, recursive: true });
-            console.log("Dropbox: 全アイテム取得成功 ->", response.result.entries.length, "個");
             processDropboxFiles(response.result.entries);
         } catch (e) {
-            console.error("Dropbox Error:", e);
-            let msg = "Sync Error";
-            if(e.status === 401) msg = "Token Expired (401)";
-            if(e.status === 404) msg = "Folder Not Found (404)";
-            document.getElementById('categoryTabs').innerHTML = `<p style="color:red; font-size:0.6rem;">${msg}</p>`;
+            document.getElementById('categoryTabs').innerHTML = '<p style="color:red; font-size:0.6rem;">Sync Failed</p>';
         }
     }
 
     function processDropboxFiles(entries) {
         allMatchData = [];
         const categories = new Set();
-
         entries.forEach(entry => {
-            // デバッグログ: 取得したファイル一報
-            console.log("検証中: " + entry.path_display);
-
-            if (entry['.tag'] === 'file') {
-                const isDvw = entry.name.toLowerCase().endsWith('.dvw');
+            if (entry['.tag'] === 'file' && entry.name.toLowerCase().endsWith('.dvw')) {
                 const vidMatch = entry.name.match(/\[(.*?)\]/);
-
-                if (isDvw && vidMatch) {
-                    // フォルダ名をカテゴリとして抽出
-                    const pathParts = entry.path_display.split('/');
-                    const catName = pathParts.length > 2 ? pathParts[pathParts.length - 2] : 'Default';
-                    
-                    console.log("  => 採用! ID:" + vidMatch[1] + " / Cat:" + catName);
-
+                const pathParts = entry.path_display.split('/');
+                const catName = pathParts.length > 2 ? pathParts[pathParts.length - 2] : 'Default';
+                if (vidMatch) {
                     allMatchData.push({
                         cat: catName,
                         path: entry.path_lower,
-                        vid: vidMatch[1],
+                        vid: vidMatch[1].trim(), // 動画IDの空白を除去
                         fileName: entry.name
                     });
                     categories.add(catName);
-                } else {
-                    if(!isDvw) console.warn("  => 除外: .dvw ではありません");
-                    if(!vidMatch) console.warn("  => 除外: [ID] がファイル名に含まれていません");
                 }
             }
         });
-
-        const tabArea = document.getElementById('categoryTabs');
-        tabArea.innerHTML = '';
-        
-        if (categories.size === 0) {
-            tabArea.innerHTML = '<p style="font-size:0.7rem; color:red;">No valid files found.</p>';
-            console.error("有効なDVWファイルが見つかりませんでした。命名規則を確認してください。");
-            return;
-        }
-
+        const tabArea = document.getElementById('categoryTabs'); tabArea.innerHTML = '';
         Array.from(categories).sort().forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'mode-tab';
-            btn.innerText = cat;
-            btn.onclick = () => filterMatchList(cat);
-            tabArea.appendChild(btn);
+            const btn = document.createElement('button'); btn.className = 'mode-tab'; btn.innerText = cat;
+            btn.onclick = () => filterMatchList(cat); tabArea.appendChild(btn);
         });
-
-        filterMatchList(Array.from(categories).sort()[0]);
+        if (categories.size > 0) filterMatchList(Array.from(categories).sort()[0]);
     }
 
     function filterMatchList(cat) {
         document.querySelectorAll('#categoryTabs .mode-tab').forEach(t => t.classList.toggle('active', t.innerText === cat));
         const select = document.getElementById('matchSelect');
         select.innerHTML = '<option value="">Select Match...</option>';
-        
-        const filtered = allMatchData.filter(m => m.cat === cat);
-        filtered.forEach(m => {
+        allMatchData.filter(m => m.cat === cat).forEach(m => {
             matchMap[m.path] = m.vid;
             const displayName = m.fileName.replace(/\[.*?\]/, '').replace('.dvw', '').trim();
             select.add(new Option(displayName, m.path));
         });
-        console.log("カテゴリ選択: " + cat + " ( " + filtered.length + " 試合)");
     }
 
     async function onMatchChange(path) {
-        if (!path) return;
-        const vid = matchMap[path];
-        console.log("動画読込開始: " + vid);
-        player.loadVideoById(vid);
-        document.getElementById('instanceList').innerHTML = '<p style="text-align:center; padding:20px;">Fetching DVW file...</p>';
+        if (!path || !isPlayerReady) return;
+        const videoId = matchMap[path];
+        console.log("Loading Video ID:", videoId);
         
+        // 動画の読み込みを確実に行う
         try {
-            const linkRes = await dbx.filesGetTemporaryLink({ path: path });
-            console.log("DVW一時リンク取得成功");
-            fetch(linkRes.result.link).then(res => res.text()).then(parseDVW);
-        } catch (e) {
-            console.error("DVW取得エラー:", e);
+            player.cueVideoById(videoId);
+            player.playVideo();
+        } catch (err) {
+            console.error("YouTube Play Error:", err);
         }
+
+        document.getElementById('instanceList').innerHTML = '<p style="text-align:center; padding:20px;">Fetching Data...</p>';
+        const linkRes = await dbx.filesGetTemporaryLink({ path: path });
+        fetch(linkRes.result.link).then(res => res.text()).then(parseDVW);
     }
 
-    // --- 以降、不変の解析・表示ロジック ---
+    // --- 解析・表示ロジック ---
     function parseDVW(text) {
         allPlays = []; rallies = []; playerMaster = {};
         const lines = text.split('\n');
         let currentSection = "", runningScore = "00-00", hSets = 0, aSets = 0, teamCount = 0, tempRally = null;
-        
         lines.forEach((line) => {
             const l = line.trim(); if (l.startsWith('[')) { currentSection = l; return; }
             if (currentSection === "[3TEAMS]") {
@@ -277,7 +210,7 @@
                 const side = currentSection.includes('-H') ? '*' : 'a';
                 const num = parseInt(p[1]); if (isNaN(num)) return;
                 const name = (p[9] || "" + p[10] || "").trim() || `Player ${num}`;
-                playerMaster[`${side}_${num}`] = { name, num };
+                playerMaster[`side_${num}`] = { name, num };
             }
             if (currentSection === "[3SCOUT]") {
                 const c = l.split(';'); const code = c[0]; if (!code) return;
@@ -299,9 +232,8 @@
                     if (isNaN(num)) return;
                     let oS = 2.5, oE = 4.5;
                     if (skillChar === 'S') { oS = 1.2; oE = 5.5; } 
-                    else if (skillChar === 'A') { oS = 2.5; oE = 5.0; }
-                    const p = playerMaster[`${side}_${num}`] || { name: `Player ${num}`, num };
-                    const playObj = { time, startTime: time - oS, endTime: time + oE, score: runningScore, setNum: hSets+aSets+1, hSets, aSets, side, skill: skillChar, effect: code.charAt(5), pName: p.name, pNum: p.num, rot: c[8], fullCode: code };
+                    const p = playerMaster[`side_${num}`] || { name: `Player ${num}`, num };
+                    const playObj = { time, startTime: time - oS, endTime: time + oE, score: runningScore, setNum: hSets+aSets+1, hSets, aSets, side, skill: skillChar, effect: code.charAt(5), pName: p.name, pNum: p.num, rot: c[8], wonBy: tempRally ? tempRally.wonBy : '' };
                     allPlays.push(playObj);
                     if (skillChar === 'S') { tempRally = playObj; rallies.push(playObj); }
                 }
@@ -313,16 +245,14 @@
     function updateFilters() {
         const hCode = document.getElementById('ov-h-code').innerText;
         const aCode = document.getElementById('ov-a-code').innerText;
-        const tr = document.getElementById('teamFilterRally'); tr.innerHTML = '<option value="">Both Teams</option>';
-        tr.add(new Option(hCode, "*")); tr.add(new Option(aCode, "a"));
-        const tp = document.getElementById('teamFilterPlayer'); tp.innerHTML = '<option value="">Team</option>';
-        tp.add(new Option(hCode, "*")); tp.add(new Option(aCode, "a"));
+        document.getElementById('teamFilterRally').innerHTML = `<option value="">Both Teams</option><option value="*">${hCode}</option><option value="a">${aCode}</option>`;
+        document.getElementById('teamFilterPlayer').innerHTML = `<option value="">Select Team</option><option value="*">${hCode}</option><option value="a">${aCode}</option>`;
         document.getElementById('score-overlay').style.display = 'flex';
     }
 
     function onTeamChangePlayer() {
         const team = document.getElementById('teamFilterPlayer').value;
-        const ps = document.getElementById('playerFilter'); ps.innerHTML = '<option value="">Player</option>';
+        const ps = document.getElementById('playerFilter'); ps.innerHTML = '<option value="">Select Player</option>';
         if (!team) return; const seen = new Set();
         allPlays.filter(p => p.side === team).forEach(p => {
             if (!seen.has(p.pName)) { ps.add(new Option(`#${p.pNum} ${p.pName}`, p.pName)); seen.add(p.pName); }
@@ -432,4 +362,3 @@
 </script>
 </body>
 </html>
-
