@@ -13,54 +13,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
     
-    <title>HTH Pro Scouting v0.5.15</title>
+    <title>HTH Pro Scouting v0.5.16</title>
     <style>
         :root { --primary: #007bff; --home-accent: #f06292; --away-accent: #64b5f6; --score-bg: rgba(255, 255, 255, 0.95); }
         body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; display: flex; background: #f0f2f5; }
-        #video-side { flex: 3.5; background: #000; position: relative; }
+        
+        /* レイアウトの骨格 */
+        #video-side { flex: 3.5; background: #000; position: relative; min-width: 0; }
+        #control-side { flex: 1; min-width: 320px; padding: 15px; overflow-y: auto; background: white; border-left: 1px solid #ddd; box-sizing: border-box; }
+
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            #video-side { width: 100%; height: 0; padding-top: 56.25%; flex: none; position: relative; }
-            #control-side { width: 100%; flex: 1; overflow-y: scroll; }
-            #score-overlay { top: 8px !important; left: 8px !important; width: 95px !important; display: flex !important; }
-            .score-row { height: 21px !important; }
+            #video-side { width: 100%; height: auto; aspect-ratio: 16/9; flex: none; }
+            #control-side { width: 100%; flex: 1; border-left: none; border-top: 1px solid #ddd; }
         }
-        @media (min-width: 769px) and (max-width: 1180px) {
-            #score-overlay { width: 180px !important; top: 15px !important; left: 15px !important; }
-            .score-row { height: 40px !important; }
-        }
+
+        /* YouTube埋め込み */
         #player-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
         #player { width: 100%; height: 100%; }
+
+        /* スコア表示 */
         #score-overlay {
             position: absolute; top: 30px; left: 30px; display: none; flex-direction: column;
             background: var(--score-bg); border-radius: 9px; overflow: hidden;
             box-shadow: 0 6px 20px rgba(0,0,0,0.3); font-family: 'Oswald', sans-serif; z-index: 10;
-            width: 285px; border: 1px solid #ddd;
+            width: 285px; border: 1px solid #ddd; pointer-events: none;
         }
-        .score-row { display: flex; height: 63px; border-bottom: 1px solid #eee; position: relative; }
+        .score-row { display: flex; height: 63px; border-bottom: 1px solid #eee; }
         .sticky-bar { width: 12px; height: 100%; flex-shrink: 0; }
         .home .sticky-bar { background: var(--home-accent); }
         .away .sticky-bar { background: var(--away-accent); }
         .ov-team-box { flex: 1; display: flex; align-items: center; padding-left: 15px; font-weight: 700; color: #333; font-size: 1.5rem; background: #fff; }
         .ov-sets-box { width: 52px; display: flex; align-items: center; justify-content: center; background: #fdfdfd; color: #888; font-size: 1.5rem; border-left: 1px solid #eee; }
         .ov-points-box { width: 75px; display: flex; align-items: center; justify-content: center; color: #000; font-size: 2.5rem; font-weight: 800; background: #fff; border-left: 1px solid #eee; }
-        #control-side { flex: 1; padding: 15px; overflow-y: auto; background: white; border-left: 1px solid #ddd; box-sizing: border-box; }
+
+        /* UIパーツ */
         .mode-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
-        .mode-tab { flex: 1; min-width: 60px; padding: 10px 5px; border: none; background: #e4e6eb; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 0.75rem; color: #555; }
+        .mode-tab { flex: 1; min-width: 80px; padding: 10px 5px; border: none; background: #e4e6eb; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 0.75rem; color: #555; }
         .mode-tab.active { background: var(--primary); color: white; }
         .filter-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
         .filter-label { font-size: 0.7rem; color: #888; font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
-        select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9rem; margin-bottom: 8px; }
+        select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9rem; margin-bottom: 8px; background-color: #fff; }
+        
         .set-divider { background: #555; color: white; padding: 6px; font-size: 0.75rem; font-weight: 900; border-radius: 4px; margin: 15px 0 8px 0; text-align: center; }
         .instance-btn { padding: 10px; cursor: pointer; border: 1px solid #eee; border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; border-left: 10px solid #ccc; background: #fff; }
         .instance-btn.active { background: #f0f7ff !important; outline: 2px solid var(--primary); }
         .score-box { font-family: "Arial Black"; font-size: 1rem; min-width: 55px; text-align: center; margin-right: 12px; background: #f0f0f0; border-radius: 4px; }
-        .stats-section-title { font-size: 0.85rem; font-weight: bold; padding: 8px; background: #f0f0f0; margin-top: 15px; border-radius: 4px; border-left: 5px solid #333; }
-        .stats-container { overflow-x: auto; margin-bottom: 25px; border: 1px solid #eee; }
         .stats-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; white-space: nowrap; }
         .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; }
         .p-cell { text-align: left !important; font-weight: bold; background: #fff; position: sticky; left: 0; border-right: 2px solid #ddd !important; z-index: 2; }
-        .click-num { color: var(--primary); font-weight: 800; cursor: pointer; text-decoration: underline; display: block; }
+        .click-num { color: var(--primary); font-weight: 800; cursor: pointer; text-decoration: underline; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -85,312 +87,4 @@
 
     <div class="filter-card" id="filterArea">
         <span class="filter-label">1. Category (Folders)</span>
-        <div id="categoryTabs" class="mode-tabs" style="margin-bottom: 8px;"></div>
-        
-        <span class="filter-label">2. Match</span>
-        <select id="matchSelect" onchange="onMatchChange(this.value)"><option value="">Loading Matches...</option></select>
-        <div id="rally-filters">
-            <span class="filter-label">3. Server Team (Optional)</span>
-            <select id="teamFilterRally" onchange="render()"><option value="">Both Teams (Default)</option></select>
-        </div>
-        <div id="player-filters" style="display:none;">
-            <span class="filter-label">3. Select Team & Player</span>
-            <div style="display:flex; gap:5px;">
-                <select id="teamFilterPlayer" onchange="onTeamChangePlayer()"><option value="">Choose Team</option></select>
-                <select id="playerFilter" onchange="render()"><option value="">Select Player</option></select>
-            </div>
-            <div style="display:flex; gap:5px;">
-                <div style="flex:1">
-                    <span class="filter-label">4. Skill</span>
-                    <select id="skillFilter" onchange="render()">
-                        <option value="">All Skills</option>
-                        <option value="S">Serve (S)</option><option value="R">Reception (R)</option><option value="E">Set (E)</option><option value="A">Attack (A)</option><option value="B">Block (B)</option><option value="D">Dig (D)</option>
-                    </select>
-                </div>
-                <div style="flex:1">
-                    <span class="filter-label">5. Effect</span>
-                    <select id="effectFilter" onchange="render()">
-                        <option value="">All Results</option>
-                        <option value="#">Win (#)</option><option value="=">Error (=)</option><option value="+">Pos/Kill (+)</option><option value="-">Poor (-)</option><option value="!">Neutral (!)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px; font-size:0.7rem; color:#666; margin-top:5px;">
-            <input type="checkbox" id="autoNext" checked> <label for="autoNext" id="autoNextLabel">Auto-Skip</label>
-        </div>
-    </div>
-    <div id="instanceList"></div>
-</div>
-
-<script>
-    const REPO = "hth-scouting/HTH_videoviewer";
-    const DATA_DIR = "data"; // dvwファイルをフォルダ分けして置くルートディレクトリ名
-
-    let player, allPlays = [], rallies = [], matchMap = {}, playerMaster = {}, allMatchData = [], currentMode = 'rally', currentIndex = -1, checkInterval;
-
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', { height: '100%', width: '100%', playerVars: { 'playsinline': 1, 'rel': 0, 'modestbranding': 1 }, events: { 'onReady': fetchGitHubData, 'onStateChange': onPlayerStateChange } });
-    }
-    const tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
-
-    // GitHub APIを使用してフォルダ内を自動スキャン
-    async function fetchGitHubData() {
-        try {
-            const response = await fetch(`https://api.github.com/repos/${REPO}/contents/${DATA_DIR}`);
-            const folders = await response.json();
-            
-            allMatchData = [];
-            const categories = new Set();
-
-            for (const folder of folders) {
-                if (folder.type === 'dir') {
-                    const fileRes = await fetch(folder.url);
-                    const files = await fileRes.json();
-                    
-                    files.forEach(file => {
-                        if (file.name.endsWith('.dvw')) {
-                            const vidMatch = file.name.match(/\[(.*?)\]/);
-                            if (vidMatch) {
-                                allMatchData.push({
-                                    cat: folder.name,
-                                    dvw: file.download_url,
-                                    vid: vidMatch[1],
-                                    fileName: file.name
-                                });
-                                categories.add(folder.name);
-                            }
-                        }
-                    });
-                }
-            }
-
-            const tabArea = document.getElementById('categoryTabs');
-            tabArea.innerHTML = '';
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.className = 'mode-tab';
-                btn.innerText = cat;
-                btn.onclick = () => filterMatchList(cat);
-                tabArea.appendChild(btn);
-            });
-
-            if (categories.size > 0) filterMatchList(Array.from(categories)[0]);
-            else document.getElementById('matchSelect').innerHTML = '<option>No DVW files found in /data/</option>';
-
-        } catch (e) {
-            console.error("GitHub API Error:", e);
-            document.getElementById('matchSelect').innerHTML = '<option>API Error. Check Console.</option>';
-        }
-    }
-
-    function filterMatchList(cat) {
-        document.querySelectorAll('[id^="cat-"]').forEach(b => b.classList.remove('active'));
-        const tabs = document.querySelectorAll('#categoryTabs .mode-tab');
-        tabs.forEach(t => { if(t.innerText === cat) t.classList.add('active'); });
-
-        const select = document.getElementById('matchSelect');
-        select.innerHTML = '<option value="">Select Match...</option>';
-        
-        allMatchData.filter(m => m.cat === cat).forEach(m => {
-            matchMap[m.dvw] = m.vid;
-            const displayName = m.fileName.replace(/\[.*?\]/, '').replace('.dvw', '');
-            select.add(new Option(displayName, m.dvw));
-        });
-    }
-
-    // --- ロジック部分はv0.5.12を完全に継承（一部GitHub Pages用に調整） ---
-    function onMatchChange(dvw) { 
-        if (!dvw) return; 
-        player.loadVideoById(matchMap[dvw]); 
-        // download_urlから直接fetch
-        fetch(dvw).then(res => res.text()).then(parseDVW); 
-    }
-
-    function parseDVW(text) {
-        allPlays = []; rallies = []; playerMaster = {};
-        const lines = text.split('\n');
-        let currentSection = "", runningScore = "00-00", hSets = 0, aSets = 0, teamCount = 0, tempRally = null;
-        lines.forEach((line) => {
-            const l = line.trim(); if (l.startsWith('[')) { currentSection = l; return; }
-            if (currentSection === "[3TEAMS]") {
-                const p = l.split(';'); if (p.length < 2) return;
-                if (teamCount === 0) { document.getElementById('ov-h-code').innerText = p[0]; teamCount++; }
-                else { document.getElementById('ov-a-code').innerText = p[0]; }
-            }
-            if (currentSection === "[3PLAYERS-H]" || currentSection === "[3PLAYERS-V]") {
-                const p = l.split(';'); if (p.length < 10) return;
-                const side = currentSection.includes('-H') ? '*' : 'a';
-                const num = parseInt(p[1]); if (isNaN(num)) return;
-                const name = (p[9] || "" + p[10] || "").trim() || `Player ${num}`;
-                playerMaster[`${side}_${num}`] = { name, num };
-            }
-            if (currentSection === "[3SCOUT]") {
-                const c = l.split(';'); const code = c[0]; if (!code) return;
-                if (code.startsWith('**') && code.includes('set')) {
-                    const last = runningScore.split('-').map(Number);
-                    if (last[0] > last[1]) hSets++; else if (last[1] > last[0]) aSets++;
-                    runningScore = "00-00"; return;
-                }
-                if (code.startsWith('*p') || code.startsWith('ap')) {
-                    const m = code.match(/\d{2}:\d{2}/);
-                    const winner = code.startsWith('*p') ? '*' : 'a';
-                    if (m) runningScore = m[0].replace(':', '-');
-                    if (tempRally) { tempRally.rallyEndTime = parseFloat(c[12]); tempRally.wonBy = winner; }
-                    return;
-                }
-                const skillChar = code.charAt(3);
-                if ("SRABDE".includes(skillChar)) {
-                    const side = code.charAt(0), num = parseInt(code.substring(1,3)), time = parseFloat(c[12]);
-                    if (isNaN(num)) return;
-                    let oS = 2.5, oE = 4.0;
-                    if (skillChar === 'S') { oS = 1.2; oE = 5.5; } 
-                    else if (skillChar === 'A') { oS = 2.5; oE = 5.0; } 
-                    else if (skillChar === 'R') { oS = 2.0; oE = 5.0; }
-                    const p = playerMaster[`${side}_${num}`] || { name: `Player ${num}`, num };
-                    const playObj = { time, startTime: time - oS, endTime: time + oE, score: runningScore, setNum: hSets+aSets+1, hSets, aSets, side, skill: skillChar, effect: code.charAt(5), pName: p.name, pNum: p.num, rot: c[8], fullCode: code };
-                    allPlays.push(playObj);
-                    if (skillChar === 'S') { tempRally = playObj; rallies.push(playObj); }
-                }
-            }
-        });
-        updateFilters(); render();
-    }
-
-    function updateFilters() {
-        const hCode = document.getElementById('ov-h-code').innerText;
-        const aCode = document.getElementById('ov-a-code').innerText;
-        const tr = document.getElementById('teamFilterRally'); tr.innerHTML = '<option value="">Both Teams (Default)</option>';
-        tr.add(new Option(hCode + " Serves", "*")); tr.add(new Option(aCode + " Serves", "a"));
-        const tp = document.getElementById('teamFilterPlayer'); tp.innerHTML = '<option value="">Choose Team</option>';
-        tp.add(new Option(hCode, "*")); tp.add(new Option(aCode, "a"));
-        document.getElementById('score-overlay').style.display = 'flex';
-    }
-
-    function onTeamChangePlayer() {
-        const team = document.getElementById('teamFilterPlayer').value;
-        const ps = document.getElementById('playerFilter'); ps.innerHTML = '<option value="">Select Player</option>';
-        if (!team) return; const seen = new Set();
-        allPlays.filter(p => p.side === team).forEach(p => {
-            if (!seen.has(p.pName)) { ps.add(new Option(`#${p.pNum} ${p.pName}`, p.pName)); seen.add(p.pName); }
-        });
-        render();
-    }
-
-    function setMode(m) {
-        currentMode = m; document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + m).classList.add('active');
-        document.getElementById('filterArea').style.display = (m === 'stats') ? 'none' : 'block';
-        document.getElementById('rally-filters').style.display = (m === 'rally') ? 'block' : 'none';
-        document.getElementById('player-filters').style.display = (m === 'player') ? 'block' : 'none';
-        render();
-    }
-
-    function render() {
-        const list = document.getElementById('instanceList'); list.innerHTML = '';
-        if (currentMode === 'stats') { renderDualTables(); return; }
-        if (currentMode === 'rally') {
-            const teamF = document.getElementById('teamFilterRally').value;
-            currentData = rallies.filter(d => !teamF || d.side === teamF);
-        } else {
-            const teamF = document.getElementById('teamFilterPlayer').value;
-            const playerF = document.getElementById('playerFilter').value;
-            const skillF = document.getElementById('skillFilter').value;
-            const effectF = document.getElementById('effectFilter').value;
-            if (!teamF) { list.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">Select a Team</p>'; return; }
-            currentData = allPlays.filter(d => d.side === teamF && (!playerF || d.pName === playerF) && (!skillF || d.skill === skillF) && (!effectF || (effectF === 'loss' ? (d.effect === '=' || d.effect === '/') : d.effect === effectF)));
-        }
-        let lastSet = -1;
-        currentData.forEach((d, i) => {
-            if (d.setNum !== lastSet) {
-                const div = document.createElement('div'); div.className = 'set-divider'; div.innerText = `SET ${d.setNum}`;
-                list.appendChild(div); lastSet = d.setNum;
-            }
-            const winC = d.wonBy === '*' ? 'win-home' : (d.wonBy === 'a' ? 'win-away' : '');
-            const btn = document.createElement('div'); btn.className = `instance-btn ${winC}`; btn.id = 'idx-'+i;
-            btn.innerHTML = `<div class="score-box">${d.score}</div><div style="flex:1">#${d.pNum} ${d.pName.split(' ')[0]}<br><small>P${d.rot} | ${d.skill}${d.effect}</small></div>`;
-            btn.onclick = () => playIndex(i); list.appendChild(btn);
-        });
-    }
-
-    function renderDualTables() {
-        const list = document.getElementById('instanceList'); list.innerHTML = '';
-        ["*", "a"].forEach(side => {
-            const team = side === "*" ? document.getElementById('ov-h-code').innerText : document.getElementById('ov-a-code').innerText;
-            list.innerHTML += `<div class="stats-section-title">${team} Statistics</div><div class="stats-container"><table class="stats-table" id="t-${side}"></table></div>`;
-            buildTable(side, `t-${side}`);
-        });
-    }
-
-    function buildTable(side, targetId) {
-        const ps = []; const seen = new Set();
-        allPlays.filter(p => p.side === side).forEach(p => { if (!seen.has(p.pName)) { ps.push({ name: p.pName, num: p.pNum }); seen.add(p.pName); } });
-        ps.sort((a,b) => a.num - b.num);
-        let html = `<tr><th rowspan="2">Player</th><th colspan="3">Serve</th><th colspan="4">Rec</th><th colspan="4">Attack</th></tr><tr><th>Tot</th><th>Ace</th><th>Err</th><th>Tot</th><th>Err</th><th>#+%</th><th>#%</th><th>Tot</th><th>Kill</th><th>Err</th><th>%</th></tr>`;
-        ps.forEach(p => {
-            const pl = allPlays.filter(play => play.pName === p.name && play.side === side);
-            const s = pl.filter(d => d.skill === 'S'), r = pl.filter(d => d.skill === 'R'), a = pl.filter(d => d.skill === 'A');
-            const sAce = s.filter(d => d.effect === '#').length, sErr = s.filter(d => d.effect === '=').length; 
-            const rErr = r.filter(d => d.effect === '=').length, rPerf = r.filter(d => d.effect === '#').length, rPos = r.filter(d => d.effect === '+').length;
-            const aKill = a.filter(d => d.effect === '#').length, aLoss = a.filter(d => d.effect === '=' || d.effect === '/').length;
-            const short = p.name.split(' ')[0], esc = p.name.replace(/'/g, "\\'");
-            html += `<tr><td class="p-cell">#${p.num} ${short}</td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','S','')">${s.length}</span></td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','S','#')">${sAce}</span></td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','S','=')">${sErr}</span></td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','R','')">${r.length}</span></td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','R','=')">${rErr}</span></td>
-                <td>${r.length?Math.round((rPerf+rPos)/r.length*100):0}%</td>
-                <td>${r.length?Math.round(rPerf/r.length*100):0}%</td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','A','')">${a.length}</span></td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','A','#')">${aKill}</span></td>
-                <td><span class="click-num" onclick="jumpToStat('${side}','${esc}','A','loss')">${aLoss}</span></td>
-                <td>${a.length?((aKill/a.length)*100).toFixed(1):'0.0'}%</td></tr>`;
-        });
-        document.getElementById(targetId).innerHTML = html;
-    }
-
-    function jumpToStat(side, pName, skill, eff) { 
-        setMode('player'); document.getElementById('teamFilterPlayer').value = side; onTeamChangePlayer(); 
-        document.getElementById('playerFilter').value = pName; document.getElementById('skillFilter').value = skill;
-        document.getElementById('effectFilter').value = eff; render(); if (currentData.length > 0) playIndex(0); 
-    }
-
-    function playIndex(i) {
-        if (i < 0 || i >= currentData.length) return;
-        currentIndex = i; const d = currentData[i]; player.seekTo(d.startTime, true); player.playVideo();
-        document.getElementById('ov-h-sets').innerText = d.hSets; document.getElementById('ov-a-sets').innerText = d.aSets;
-        const s = d.score.split('-'); 
-        document.getElementById('ov-h-score').innerText = parseInt(s[0]) || 0; document.getElementById('ov-a-score').innerText = parseInt(s[1]) || 0;
-        document.querySelectorAll('.instance-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('idx-' + i)?.classList.add('active');
-        document.getElementById('idx-' + i)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function onPlayerStateChange(e) { if (e.data == 1 && document.getElementById('autoNext').checked) startTracking(); else clearInterval(checkInterval); }
-    function startTracking() {
-        clearInterval(checkInterval);
-        checkInterval = setInterval(() => {
-            if (currentIndex >= 0 && currentData[currentIndex]) {
-                const now = player.getCurrentTime(), d = currentData[currentIndex];
-                let limit = (currentMode === 'player') ? d.endTime : (d.rallyEndTime + 3.0);
-                if (now > limit && currentIndex < currentData.length - 1) playIndex(currentIndex + 1);
-            }
-        }, 500);
-    }
-    function toggleOverlay() { document.getElementById('score-overlay').style.display = (document.getElementById('score-overlay').style.display === 'none') ? 'flex' : 'none'; }
-
-    window.addEventListener('keydown', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-        const key = e.key.toLowerCase();
-        if (key === 'f' && !e.shiftKey) { if (currentIndex < currentData.length - 1) playIndex(currentIndex + 1); }
-        else if (key === 'd' && !e.shiftKey) { if (currentIndex > 0) playIndex(currentIndex - 1); }
-        if (e.shiftKey) {
-            const currentTime = player.getCurrentTime();
-            if (key === 'w') { player.seekTo(currentTime - 2, true); }
-            else if (key === 'e') { player.seekTo(currentTime + 2, true); }
-        }
-    });
-</script>
-</body>
-</html>
+        <div id="categoryTabs" class="mode-tabs" style="margin-
