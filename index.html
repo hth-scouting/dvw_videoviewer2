@@ -139,7 +139,7 @@
 
 <script>
     // --- 【重要】Dropbox設定 ---
-    const DBX_APP_KEY = pwonoz1quyjer67; // あなたのApp Key
+    const DBX_APP_KEY = 'pwonoz1quyjer67'; // あなたのApp Key
     const DBX_FOLDER_PATH = ''; // 空欄の場合はアプリ専用フォルダ直下をスキャン
 
     let dbx, player, allPlays = [], rallies = [], matchMap = {}, playerMaster = {}, allMatchData = [], currentMode = 'rally', currentIndex = -1, checkInterval;
@@ -166,6 +166,19 @@
             processDropboxFiles(response.result.entries);
         } catch (e) {
             document.getElementById('categoryTabs').innerHTML = '<p style="color:red; font-size:0.6rem;">Sync Error: Check Token/Path</p>';
+            async function initDropbox() {
+        const ACCESS_TOKEN = 'あなたのトークン'; 
+        dbx = new Dropbox.Dropbox({ accessToken: ACCESS_TOKEN });
+        
+        try {
+            const response = await dbx.filesListFolder({ path: DBX_FOLDER_PATH, recursive: true });
+            console.log("Success:", response.result.entries); // 成功なら一覧が出る
+            processDropboxFiles(response.result.entries);
+        } catch (e) {
+            console.error("Full Error Info:", e); // ここでエラーの詳細（401, 403, 404など）がわかります
+            document.getElementById('categoryTabs').innerHTML = `<p style="color:red; font-size:0.6rem;">Error: ${e.status} - ${e.error.error_summary}</p>`;
+        }
+    }
         }
     }
 
@@ -418,4 +431,5 @@
 </script>
 </body>
 </html>
+
 
